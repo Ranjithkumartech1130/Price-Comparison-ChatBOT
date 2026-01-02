@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price Comparison & AI Chatbot</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="logo">
+            <i class="fas fa-robot"></i> Antigravity AI
+        </div>
+
+        <div class="nav-buttons">
+            <button class="nav-btn active" id="generalBtn">
+                <i class="fas fa-comment-alt"></i> General Chat
+            </button>
+            <button class="nav-btn" id="priceBtn">
+                <i class="fas fa-tags"></i> Price Comparison
+            </button>
+        </div>
+
+        <div class="settings-area">
+            <label for="apiKeyInput">Custom API Key</label>
+            <input type="password" id="apiKeyInput" class="api-input" placeholder="Override default key...">
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="chat-header">
+            <span id="headerTitle">General AI Chat</span>
+            <div class="header-status">
+                <div class="dot"></div> Online
+            </div>
+        </div>
+
+        <div class="messages-container" id="messages">
+            <!-- Messages will appear here -->
+        </div>
+
+        <div class="input-area">
+            <div class="input-wrapper">
+                <input type="text" class="chat-input" id="chatInput" placeholder="Type your message here..."
+                    autocomplete="off">
+            </div>
+            <button class="send-btn" id="sendBtn">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
