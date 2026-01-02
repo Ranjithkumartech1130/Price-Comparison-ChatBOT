@@ -2,7 +2,27 @@ let currentMode = 'general';
 let chatHistory = [];
 const API_BASE = 'http://localhost:8000/api';
 
+// Basic country detection using timezone (Privacy friendly)
+function detectCountry() {
+    try {
+        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (timeZone.includes("Calcutta") || timeZone.includes("Kolkata") || timeZone.includes("India")) {
+            return "IN";
+        }
+    } catch (e) { }
+    return "US";
+}
+
+let userCountry = "US";
+
 document.addEventListener('DOMContentLoaded', () => {
+    userCountry = detectCountry();
+    // Update Online status with country
+    const statusText = document.querySelector('.header-status');
+    if (statusText) {
+        statusText.innerHTML = `<div class="dot"></div> Online (${userCountry})`;
+    }
+
     const apiKeyInput = document.getElementById('apiKeyInput');
     const storedKey = localStorage.getItem('gemini_api_key');
     if (storedKey) apiKeyInput.value = storedKey;
@@ -20,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Initial greeting
-    addMessage('bot', "Hello! I'm your AI Assistant. You can chat with me generally, or switch to the 'Price Comparison' tab to search for products across the web.");
+    addMessage('bot', `Hello! I've detected your location as <strong>${userCountry}</strong>. I'll customize price comparisons for you.`);
 });
 
 function setMode(mode) {
@@ -79,7 +99,8 @@ async function sendMessage() {
                 headers: headers,
                 body: JSON.stringify({
                     query: message,
-                    api_key: apiKey || null
+                    api_key: apiKey || null,
+                    country_code: userCountry
                 })
             });
         }

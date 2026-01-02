@@ -66,56 +66,87 @@ def scrape_ebay(query):
 def scrape_amazon_demo(query):
     pass
 
-def custom_scraper(query):
+def custom_scraper(query, country_code="US"):
+    # Default to generic scrape (eBay US) for real data 
+    # In a full app, we would have separate scrapers for flipkart/amazon.in
     results = scrape_ebay(query)
     
-    # If scraping failed or returned 0 items (common due to bot protection), 
-    # we return mock data so the USER can still verify the UI and logic.
-    if not results:
-        print("Scraping returned 0 results. generating mock data for demo.")
-        quoted_query = urllib.parse.quote(query)
-        return [
-            {
-                "source": "eBay (Demo/Fallback)",
-                "title": f"New {query} - High Performance",
-                "price": "$199.99",
-                "link": f"https://www.ebay.com/sch/i.html?_nkw={quoted_query}"
-            },
-            {
-                "source": "Amazon (Demo/Fallback)",
-                "title": f"{query} Pro Edition",
-                "price": "$249.99",
-                "link": f"https://www.amazon.com/s?k={quoted_query}"
-            },
-             {
-                "source": "BestBuy (Demo/Fallback)",
-                "title": f"Refurbished {query}",
-                "price": "$150.00",
-                "link": f"https://www.bestbuy.com/site/searchpage.jsp?st={quoted_query}"
-            }
+    quoted_query = urllib.parse.quote(query)
+    
+    # Store Configuration based on Location
+    if country_code == "IN":
+        currency_symbol = "₹"
+        stores = [
+            {"name": "Flipkart", "url": f"https://www.flipkart.com/search?q={quoted_query}"},
+            {"name": "Amazon India", "url": f"https://www.amazon.in/s?k={quoted_query}"},
+            {"name": "Croma", "url": f"https://www.croma.com/search/?text={quoted_query}"}
         ]
+        exchange_rate = 83.0 # Approx 1 USD = 83 INR
+    else:
+        currency_symbol = "$"
+        stores = [
+             {"name": "Amazon US", "url": f"https://www.amazon.com/s?k={quoted_query}"},
+             {"name": "BestBuy", "url": f"https://www.bestbuy.com/site/searchpage.jsp?st={quoted_query}"},
+             {"name": "Walmart", "url": f"https://www.walmart.com/search?q={quoted_query}"}
+        ]
+        exchange_rate = 1.0
 
-    # Add simulated competitor for visual comparison if we have real results
+    # 1. Localize/Convert Real Results (eBay)
+    # eBay results are usually in USD. Let's crudely convert them for display if IN
+    normalized_results = []
+    
     if results:
-        base_price_str = results[0]['price'].replace('$', '').replace(',', '').strip()
-        try:
-            if 'to' in base_price_str:
-                base_price = float(base_price_str.split('to')[0].strip())
-            else:
-                base_price = float(base_price_str)
-            
-            mock_price = round(base_price * (1 + (random.random() * 0.2 - 0.1)), 2)
-            
-            # Create a search link for the title
-            quoted_title = urllib.parse.quote(results[0]['title'])
-            
-            results.append({
-                "source": "Amazon (Simulated)",
-                "title": results[0]['title'],
-                "price": f"${mock_price}",
-                "link": f"https://www.amazon.com/s?k={quoted_title}"
+        for item in results:
+            price_str = item['price'].replace('$', '').replace('US', '').replace(',', '').strip()
+            try:
+                # Handle "to" ranges
+                if 'to' in price_str:
+                    price_val = float(price_str.split('to')[0].strip())
+                else:
+                    price_val = float(price_str)
+                
+                # Convert
+                local_price = price_val * exchange_rate
+                
+                # Format
+                formatted_price = f"{currency_symbol}{local_price:,.2f}"
+                
+                item['price'] = formatted_price
+                normalized_results.append(item)
+            except:
+                normalized_results.append(item) # Keep original if parse fails
+    else:
+        # Fallback Mock Data if eBay fails
+        print("Scraping returned 0 results. Generating localized mock data.")
+        base_price_usd = 200.0 # Arbitrary base
+        
+        for store in stores:
+            # Randomize price slightly
+            local_price = (base_price_usd * exchange_rate) * (1 + (random.random() * 0.2 - 0.1))
+            normalized_results.append({
+                "source": f"{store['name']} (Simulated)",
+                "title": f"{query} - {store['name']} Deal",
+                "price": f"{currency_symbol}{local_price:,.2f}",
+                "link": store['url']
             })
-        except:
+
+    # 2. Add Competitor Prices (Simulated) for Comparison
+    # Even if we found real eBay items, let's add local competitors
+    if normalized_results and len(normalized_results) > 0:
+        base_price_str = normalized_results[0]['price'].replace(currency_symbol, '').replace(',', '').strip()
+        try:
+             base_val = float(base_price_str)
+             
+             # Add 2 competitor stores
+             for store in stores[:2]:
+                 mock_price = base_val * (1 + (random.random() * 0.15 - 0.07))
+                 normalized_results.append({
+                    "source": f"{store['name']} (Simulated)",
+                    "title": normalized_results[0]['title'],
+                    "price": f"{currency_symbol}{mock_price:,.2f}",
+                    "link": store['url']
+                 })
+        except Exception as e:
             pass
-            
-    return results
+
+    return normalized_results

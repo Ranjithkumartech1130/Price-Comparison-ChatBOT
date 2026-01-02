@@ -19,6 +19,7 @@ class ChatRequest(BaseModel):
 class PriceRequest(BaseModel):
     query: str
     api_key: Optional[str] = None # Optional, if we want AI to summarize
+    country_code: Optional[str] = "US"
 
 app.add_middleware(
     CORSMiddleware,
@@ -41,8 +42,8 @@ async def general_chat(request: ChatRequest):
 @app.post("/api/chat/price")
 async def price_comparison(request: PriceRequest):
     # 1. Scrape Data
-    print(f"Scraping for: {request.query}")
-    data = custom_scraper(request.query)
+    print(f"Scraping for: {request.query} in {request.country_code}")
+    data = custom_scraper(request.query, country_code=request.country_code)
     
     if not data:
         return {
