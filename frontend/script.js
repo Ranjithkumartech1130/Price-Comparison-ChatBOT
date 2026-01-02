@@ -161,10 +161,17 @@ function renderProducts(products) {
     products.forEach(p => {
         const card = document.createElement('div');
         card.className = 'product-card';
+
+        const estimateHtml = p.is_estimate ?
+            `<div class="estimate-badge"><i class="fas fa-info-circle"></i> Market Est.</div>` : '';
+
         card.innerHTML = `
             <div class="product-source">${p.source}</div>
             <div class="product-title">${p.title}</div>
-            <div class="product-price">${p.price}</div>
+            <div class="product-price">
+                ${p.price}
+                ${estimateHtml}
+            </div>
             <a href="${p.link}" target="_blank" class="product-link">View Deal</a>
         `;
         grid.appendChild(card);

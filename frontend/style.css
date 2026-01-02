@@ -389,6 +389,21 @@ body {
     box-shadow: 0 4px 15px rgba(138, 180, 248, 0.4);
 }
 
+.estimate-badge {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: 0.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.estimate-badge i {
+    font-size: 0.8rem;
+    color: var(--accent);
+}
+
 @keyframes slideUp {
     from {
         opacity: 0;
