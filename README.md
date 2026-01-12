@@ -2,6 +2,9 @@
 
 A generic AI chatbot with a dedicated Price Comparison module that scrapes data from the web.
 
+## About
+This project aims to provide a seamless experience for users to chat with an AI assistant and simultaneously compare product prices across different regions (US/India) with real and simulated data.
+
 ## Features
 - **General AI Chat**: Chat with a Google Gemini-powered assistant.
 - **Price Comparison**: Search for products and compare prices from multiple sources (eBay and simulated competitors).
