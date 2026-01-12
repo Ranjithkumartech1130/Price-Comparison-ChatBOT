@@ -8,3 +8,5 @@ pytest
 httpx
 jsonschema
 dotenv
+black
+flake8
