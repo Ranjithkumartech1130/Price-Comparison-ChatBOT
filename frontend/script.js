@@ -1,3 +1,7 @@
+/**
+ * Frontend script for Price Comparison Chatbot.
+ * Handles API communication and UI updates.
+ */
 let currentMode = 'general';
 let chatHistory = [];
 const API_BASE = 'http://localhost:8000/api';
