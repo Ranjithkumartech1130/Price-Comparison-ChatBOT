@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('priceBtn').addEventListener('click', () => setMode('price'));
 
     document.getElementById('sendBtn').addEventListener('click', sendMessage);
+    document.getElementById('clearBtn').addEventListener('click', clearChat);
     document.getElementById('chatInput').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendMessage();
     });
@@ -183,4 +184,11 @@ function renderProducts(products) {
 
     container.appendChild(grid);
     container.scrollTop = container.scrollHeight;
+}
+
+function clearChat() {
+    const container = document.getElementById('messages');
+    container.innerHTML = '';
+    chatHistory = [];
+    addMessage('bot', "Chat cleared. How can I help you?");
 }
