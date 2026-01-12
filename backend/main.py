@@ -1,10 +1,11 @@
+import os
+import uvicorn
+from typing import Optional, List
 from fastapi import FastAPI, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from typing import Optional, List
-import os
-import uvicorn
+
 from backend.scraper import custom_scraper
 from backend.ai_agent import AIModel
 
@@ -29,8 +30,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/health")
+async def health_check():
+    """Health check endpoint to verify server status."""
+    return {"status": "healthy"}
+
 @app.post("/api/chat/general")
 async def general_chat(request: ChatRequest):
+    """
+    Handle general chat requests using the AI agent.
+    
+    Args:
+        request (ChatRequest): The chat request object containing message and history.
+        
+    Returns:
+        dict: The response from the AI agent.
+    """
     # API key is now optional in request if set in env
     agent = AIModel(api_key=request.api_key)
     
