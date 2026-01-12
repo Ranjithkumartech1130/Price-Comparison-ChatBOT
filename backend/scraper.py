@@ -1,35 +1,49 @@
-import requests
-from bs4 import BeautifulSoup
 import random
 import urllib.parse
+import requests
+from bs4 import BeautifulSoup
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+]
 
 def get_headers():
-    user_agents = [
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
-    ]
     return {
-        "User-Agent": random.choice(user_agents),
+        "User-Agent": random.choice(USER_AGENTS),
         "Accept-Language": "en-US,en;q=0.9",
     }
 
 def scrape_ebay(query):
+    """
+    Scrape eBay for a given query.
+    
+    Args:
+        query (str): The search query.
+        
+    Returns:
+        list: A list of dictionaries containing product details (title, price, link).
+    """
     try:
         url = f"https://www.ebay.com/sch/i.html?_nkw={query.replace(' ', '+')}"
-        print(f"Scraping URL: {url}")
+        logger.info(f"Scraping URL: {url}")
         response = requests.get(url, headers=get_headers())
-        print(f"Response Status: {response.status_code}")
+        logger.info(f"Response Status: {response.status_code}")
         
         soup = BeautifulSoup(response.text, 'html.parser')
         
         # Check if we are blocked
         page_title = soup.title.string if soup.title else "No Title"
-        print(f"Page Title: {page_title}")
+        logger.debug(f"Page Title: {page_title}")
 
         items = []
         listings = soup.select('.s-item')
-        print(f"Found {len(listings)} raw items")
+        logger.info(f"Found {len(listings)} raw items")
         
         for item in listings[:8]:
             try:
@@ -63,10 +77,18 @@ def scrape_ebay(query):
         print(f"Error scraping eBay: {e}")
         return []
 
-def scrape_amazon_demo(query):
-    pass
 
 def custom_scraper(query, country_code="US"):
+    """
+    Main scraper function handling multiple sources and localization.
+    
+    Args:
+        query (str): Search query.
+        country_code (str, optional): ISO country code. Defaults to "US".
+        
+    Returns:
+        list: Normalized list of product results.
+    """
     # Default to generic scrape (eBay US) for real data 
     # In a full app, we would have separate scrapers for flipkart/amazon.in
     results = scrape_ebay(query)
