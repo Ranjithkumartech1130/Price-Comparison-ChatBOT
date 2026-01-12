@@ -164,7 +164,6 @@ body {
 
 .chat-header {
     padding: 1.5rem 3rem;
-    /* border-bottom: 1px solid var(--border); */
     font-size: 1.4rem;
     font-weight: 600;
     display: flex;
@@ -173,6 +172,25 @@ body {
     background: rgba(9, 9, 11, 0.5);
     backdrop-filter: blur(10px);
     z-index: 5;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+#clearBtn {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    background: rgba(255, 92, 92, 0.1);
+    color: #ff5c5c;
+    border: 1px solid rgba(255, 92, 92, 0.2);
+}
+
+#clearBtn:hover {
+    background: #ff5c5c;
+    color: white;
 }
 
 .header-status {
