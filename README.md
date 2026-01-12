@@ -25,6 +25,15 @@ A generic AI chatbot with a dedicated Price Comparison module that scrapes data 
 4.  **API Key**:
     Enter your Google Gemini API Key in the sidebar settings to enable AI features.
 
+## Usage
+- **General Chat**: Ask general questions.
+- **Price Comparison**: Switch tab, type a product name (e.g. "iPhone 15"), and view comparative prices.
+
 ## Project Structure
 - `backend/`: Python FastAPI backend, scraper, and AI agent.
 - `frontend/`: HTML, CSS, JS for the user interface.
+
+## Troubleshooting
+
+- **Server fails to start**: Ensure you have installed all requirements using `pip install -r requirements.txt`.
+- **API Key Errors**: Make sure you have set the `GEMINI_API_KEY` environment variable or entered it in the UI.
