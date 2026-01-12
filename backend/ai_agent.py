@@ -5,24 +5,48 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# List of models to try in order of preference
+AVAILABLE_MODELS = [
+    'gemini-2.0-flash',
+    'gemini-2.0-flash-lite', 
+    'gemini-2.5-flash',
+    'gemini-2.5-flash-lite',
+    'gemini-flash-latest',
+    'gemini-1.5-flash-latest',
+    'gemini-1.5-flash'
+]
+
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 class AIModel:
-    def __init__(self, api_key=None):
+    def __init__(self, api_key: str = None):
+        """
+        Initialize the AI Model agent.
+        
+        Args:
+            api_key (str, optional): The Google Gemini API key. Defaults to None.
+        """
         self.api_key = api_key or os.getenv("GEMINI_API_KEY")
         if self.api_key:
             genai.configure(api_key=self.api_key)
         
-        # List of models to try in order of preference
-        self.models = [
-            'gemini-2.0-flash',
-            'gemini-2.0-flash-lite', 
-            'gemini-2.5-flash',
-            'gemini-2.5-flash-lite',
-            'gemini-flash-latest',
-            'gemini-1.5-flash-latest',
-            'gemini-1.5-flash'
-        ]
+        self.models = AVAILABLE_MODELS
 
-    def generate_response(self, prompt, context=None):
+    def generate_response(self, prompt: str, context: str = None) -> str:
+        """
+        Generate a response using the available Gemini models.
+        
+        Args:
+            prompt (str): The user's prompt.
+            context (str, optional): Additional context for the conversation.
+            
+        Returns:
+            str: The generated response or error message.
+        """
         if not self.api_key:
             return "Please provide a valid API Key to use the AI features."
             
@@ -33,24 +57,24 @@ class AIModel:
         errors = []
         for model_name in self.models:
             try:
-                # print(f"Trying model: {model_name}")
+                # logger.info(f"Trying model: {model_name}")
                 model = genai.GenerativeModel(model_name)
                 response = model.generate_content(full_prompt)
                 return response.text
             except Exception as e:
                 error_str = str(e)
                 if "429" in error_str or "Quota exceeded" in error_str:
-                    print(f"Model {model_name} quota exceeded. Switching...")
+                    logger.warning(f"Model {model_name} quota exceeded. Switching...")
                     errors.append(f"{model_name}: Quota Exceeded")
                     time.sleep(1) # Short cool-down before next model
                     continue
                 elif "404" in error_str or "not found" in error_str:
-                     print(f"Model {model_name} not found. Switching...")
+                     logger.warning(f"Model {model_name} not found. Switching...")
                      errors.append(f"{model_name}: Not Found")
                      continue
                 else:
                     # For other errors, might not want to retry indefinitely, but let's try next model just in case
-                    print(f"Model {model_name} error: {e}")
+                    logger.error(f"Model {model_name} error: {e}")
                     errors.append(f"{model_name}: {e}")
                     continue
         
