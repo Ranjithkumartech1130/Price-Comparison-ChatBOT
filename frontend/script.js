@@ -153,6 +153,19 @@ function addMessage(role, content, isHtml = false) {
         }
     }
 
+    if (role === 'bot' && !isHtml) {
+        const copyBtn = document.createElement('button');
+        copyBtn.className = 'copy-btn';
+        copyBtn.innerHTML = '<i class="far fa-copy"></i>';
+        copyBtn.title = 'Copy to clipboard';
+        copyBtn.onclick = () => {
+            navigator.clipboard.writeText(content);
+            copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+            setTimeout(() => { copyBtn.innerHTML = '<i class="far fa-copy"></i>'; }, 2000);
+        };
+        div.appendChild(copyBtn);
+    }
+
     container.appendChild(div);
     container.scrollTop = container.scrollHeight;
     return div.id;
