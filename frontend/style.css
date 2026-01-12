@@ -64,6 +64,17 @@ body {
     filter: drop-shadow(0 0 10px rgba(138, 180, 248, 0.3));
 }
 
+.version-badge {
+    font-size: 0.65rem;
+    background: var(--accent);
+    color: white;
+    padding: 0.1rem 0.4rem;
+    border-radius: 6px;
+    -webkit-text-fill-color: white;
+    vertical-align: middle;
+    font-weight: 800;
+}
+
 .nav-buttons {
     display: flex;
     flex-direction: column;
