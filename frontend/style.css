@@ -519,3 +519,390 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.2);
 }
+
+/* Location Request Styles */
+.location-request {
+    text-align: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, rgba(138, 180, 248, 0.05), rgba(217, 70, 239, 0.05));
+    border-radius: 20px;
+    border: 1px solid var(--border);
+}
+
+.location-request h3 {
+    font-size: 1.4rem;
+    margin: 1rem 0 0.5rem;
+    color: var(--text-main);
+}
+
+.location-request p {
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin: 0.5rem 0;
+}
+
+.location-btn {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dim));
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 14px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 15px rgba(138, 180, 248, 0.3);
+}
+
+.location-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(138, 180, 248, 0.5);
+}
+
+.location-btn i {
+    font-size: 1.2rem;
+}
+
+/* Distance Controls */
+.distance-controls {
+    background: rgba(255, 255, 255, 0.02);
+    padding: 1.5rem;
+    border-radius: 16px;
+    margin: 1.5rem 0;
+    border: 1px solid var(--border);
+}
+
+.distance-controls h4 {
+    color: var(--primary);
+    font-size: 1.1rem;
+    margin-bottom: 1.2rem;
+    font-weight: 600;
+}
+
+.distance-slider-container {
+    margin-bottom: 1.2rem;
+}
+
+.distance-slider-container label {
+    display: block;
+    color: var(--text-main);
+    font-size: 0.95rem;
+    margin-bottom: 0.6rem;
+    font-weight: 500;
+}
+
+.distance-slider-container label span {
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.distance-slider-container input[type="range"] {
+    width: 100%;
+    height: 6px;
+    border-radius: 5px;
+    background: linear-gradient(to right, var(--primary-dim), var(--primary));
+    outline: none;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+    -webkit-appearance: none;
+}
+
+.distance-slider-container input[type="range"]:hover {
+    opacity: 1;
+}
+
+.distance-slider-container input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary);
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(138, 180, 248, 0.5);
+    transition: all 0.2s;
+}
+
+.distance-slider-container input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 15px rgba(138, 180, 248, 0.8);
+}
+
+.distance-slider-container input[type="range"]::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary);
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 0 10px rgba(138, 180, 248, 0.5);
+    transition: all 0.2s;
+}
+
+.distance-slider-container input[type="range"]::-moz-range-thumb:hover {
+    transform: scale(1.2);
+    box-shadow: 0 0 15px rgba(138, 180, 248, 0.8);
+}
+
+/* Store Grid */
+.store-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+    animation: fadeIn 0.5s ease;
+}
+
+/* Store Cards */
+.store-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border);
+    padding: 1.8rem;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.store-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(45deg, transparent, rgba(138, 180, 248, 0.05), transparent);
+    transform: translateX(-100%);
+    transition: 0.5s;
+}
+
+.store-card:hover::before {
+    transform: translateX(100%);
+}
+
+.store-card:hover {
+    transform: translateY(-8px);
+    border-color: var(--primary-dim);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    background: var(--bg-card-hover);
+}
+
+.store-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.store-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-main);
+    flex: 1;
+    line-height: 1.3;
+}
+
+.distance-badge {
+    background: linear-gradient(135deg, rgba(138, 180, 248, 0.15), rgba(92, 124, 250, 0.15));
+    color: var(--primary);
+    padding: 0.4rem 0.8rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+    border: 1px solid rgba(138, 180, 248, 0.2);
+}
+
+.store-address {
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.store-rating {
+    color: #fbbf24;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 500;
+}
+
+.store-price {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--success);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.store-badges {
+    display: flex;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+}
+
+.stock-badge,
+.status-badge {
+    padding: 0.4rem 0.8rem;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.stock-badge.in-stock {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--success);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.stock-badge.low-stock {
+    background: rgba(251, 191, 36, 0.15);
+    color: #fbbf24;
+    border: 1px solid rgba(251, 191, 36, 0.3);
+}
+
+.status-badge.open {
+    background: rgba(34, 197, 94, 0.15);
+    color: var(--success);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.status-badge.closed {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.store-actions {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.store-btn {
+    flex: 1;
+    min-width: 100px;
+    text-decoration: none;
+    padding: 0.8rem 1rem;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid;
+}
+
+.store-btn.map-btn {
+    background: rgba(138, 180, 248, 0.1);
+    color: var(--primary);
+    border-color: rgba(138, 180, 248, 0.2);
+}
+
+.store-btn.map-btn:hover {
+    background: var(--primary);
+    color: white;
+    box-shadow: 0 4px 15px rgba(138, 180, 248, 0.4);
+}
+
+.store-btn.phone-btn {
+    background: rgba(34, 197, 94, 0.1);
+    color: var(--success);
+    border-color: rgba(34, 197, 94, 0.2);
+}
+
+.store-btn.phone-btn:hover {
+    background: var(--success);
+    color: white;
+    box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+}
+
+.store-btn.website-btn {
+    background: rgba(217, 70, 239, 0.1);
+    color: var(--accent);
+    border-color: rgba(217, 70, 239, 0.2);
+}
+
+.store-btn.website-btn:hover {
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 4px 15px rgba(217, 70, 239, 0.4);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        max-width: 280px;
+        position: fixed;
+        left: -100%;
+        transition: left 0.3s;
+        z-index: 100;
+    }
+
+    .store-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .price-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .store-actions {
+        flex-direction: column;
+    }
+
+    .store-btn {
+        min-width: 100%;
+    }
+}
+
+/* Demo Mode Styling */
+.demo-warning {
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    color: #fbbf24;
+    padding: 1rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    animation: fadeIn 0.5s ease;
+}
+
+.demo-warning i {
+    font-size: 1.5rem;
+}
+
+.store-card.simulated {
+    border-color: rgba(251, 191, 36, 0.2);
+}
+
+.store-card.simulated .store-name::after {
+    content: '';
+}
