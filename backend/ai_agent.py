@@ -1,4 +1,4 @@
-import google.generativeai as genai
+from google import genai
 import os
 import time
 from dotenv import load_dotenv
@@ -31,10 +31,12 @@ class AIModel:
             api_key (str, optional): The Google Gemini API key. Defaults to None.
         """
         self.api_key = api_key or os.getenv("GEMINI_API_KEY")
+        self.client = None
         if self.api_key:
-            genai.configure(api_key=self.api_key)
+            self.client = genai.Client(api_key=self.api_key)
         
         self.models = AVAILABLE_MODELS
+        self.disabled_models = {} # model_name -> timestamp of last 429
 
     def generate_response(self, prompt: str, context: str = None) -> str:
         """
@@ -47,26 +49,36 @@ class AIModel:
         Returns:
             str: The generated response or error message.
         """
-        if not self.api_key:
+        if not self.client:
             return "Please provide a valid API Key to use the AI features."
             
         full_prompt = prompt
         if context:
             full_prompt = f"Context: {context}\nUser: {prompt}"
 
+        now = time.time()
         errors = []
         for model_name in self.models:
+            # Skip models on cooldown (60 seconds)
+            if model_name in self.disabled_models:
+                if now - self.disabled_models[model_name] < 60:
+                    continue
+                else:
+                    del self.disabled_models[model_name]
+
             try:
                 # logger.info(f"Trying model: {model_name}")
-                model = genai.GenerativeModel(model_name)
-                response = model.generate_content(full_prompt)
+                response = self.client.models.generate_content(
+                    model=model_name,
+                    contents=full_prompt
+                )
                 return response.text
             except Exception as e:
                 error_str = str(e)
                 if "429" in error_str or "Quota exceeded" in error_str:
-                    logger.warning(f"Model {model_name} quota exceeded. Switching...")
+                    logger.warning(f"Model {model_name} quota exceeded. Cooling down...")
+                    self.disabled_models[model_name] = time.time()
                     errors.append(f"{model_name}: Quota Exceeded")
-                    time.sleep(1) # Short cool-down before next model
                     continue
                 elif "404" in error_str or "not found" in error_str:
                      logger.warning(f"Model {model_name} not found. Switching...")
