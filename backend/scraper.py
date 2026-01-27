@@ -2,8 +2,8 @@ import random
 import urllib.parse
 import requests
 from bs4 import BeautifulSoup
-
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 
@@ -22,80 +22,93 @@ def get_headers():
 def scrape_ebay(query):
     """
     Scrape eBay for a given query.
-    
-    Args:
-        query (str): The search query.
-        
-    Returns:
-        list: A list of dictionaries containing product details (title, price, link).
+    Returns list of dicts with title, price, shipping, link.
     """
     try:
+        # Construct search URL
         url = f"https://www.ebay.com/sch/i.html?_nkw={query.replace(' ', '+')}"
         logger.info(f"Scraping URL: {url}")
-        response = requests.get(url, headers=get_headers())
-        logger.info(f"Response Status: {response.status_code}")
         
+        # Use more comprehensive headers to avoid being blocked
+        headers = {
+            "User-Agent": random.choice(USER_AGENTS),
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.5",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Connection": "keep-alive",
+            "Upgrade-Insecure-Requests": "1",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "none",
+            "Sec-Fetch-User": "?1",
+        }
+        
+        response = requests.get(url, headers=headers, timeout=10)
         soup = BeautifulSoup(response.text, 'html.parser')
         
-        # Check if we are blocked
-        page_title = soup.title.string if soup.title else "No Title"
-        logger.debug(f"Page Title: {page_title}")
-
         items = []
-        listings = soup.select('.s-item')
-        logger.info(f"Found {len(listings)} raw items")
+        # Support multiple listing layouts
+        listings = soup.select('.s-item, .s-card, .srp-results li')
         
-        for item in listings[:8]:
+        for item in listings:
             try:
-                title = item.select_one('.s-item__title')
-                price = item.select_one('.s-item__price')
-                link = item.select_one('.s-item__link')
+                # Find title
+                title_elem = item.select_one('.s-item__title, .s-card__title, h3')
+                if not title_elem: continue
+                title_text = title_elem.get_text(strip=True)
                 
-                if not (title and price and link):
+                # Filter noise
+                if any(x in title_text.lower() for x in ["shop on ebay", "new listing", "sponsored"]):
                     continue
 
-                title_text = title.text
-                price_text = price.text
-                link_href = link['href']
+                # Find price
+                price_elem = item.select_one('.s-item__price, .s-card__price, .s-item__price--bold')
+                if not price_elem:
+                    # Generic search for anything with a dollar sign or numeric price pattern
+                    price_elem = item.find(lambda t: t.name in ['span', 'div'] and '$' in t.get_text())
                 
-                # Filter out "Shop on eBay" dummy item
-                if "Shop on eBay" in title_text or "New Listing" in title_text:
+                if not price_elem: continue
+                price_text = price_elem.get_text(strip=True)
+
+                # Link
+                link_elem = item.select_one('.s-item__link, .s-card__link') or item.find('a', href=True)
+                if not link_elem or not link_elem.get('href') or 'itm/' not in link_elem['href']:
                     continue
-                    
+                link_href = link_elem['href']
+
+                # Shipping
+                shipping_elem = item.select_one('.s-item__shipping, .s-card__shipping')
+                shipping_text = shipping_elem.get_text(strip=True) if shipping_elem else "Calculated"
+
                 items.append({
                     "source": "eBay",
                     "title": title_text,
                     "price": price_text,
+                    "shipping": shipping_text,
                     "link": link_href
                 })
-            except Exception as e:
-                # print(f"Error parsing item: {e}") 
+                
+                if len(items) >= 8:
+                    break
+            except Exception:
                 continue
         
         return items
     except Exception as e:
-        print(f"Error scraping eBay: {e}")
+        logger.error(f"Error scraping eBay: {e}")
         return []
 
 
 def custom_scraper(query, country_code="US"):
     """
     Main scraper function handling multiple sources and localization.
-    
-    Args:
-        query (str): Search query.
-        country_code (str, optional): ISO country code. Defaults to "US".
-        
-    Returns:
-        list: Normalized list of product results.
     """
-    # Default to generic scrape (eBay US) for real data 
-    # In a full app, we would have separate scrapers for flipkart/amazon.in
+    # 1. Scrape Real Data (eBay)
     results = scrape_ebay(query)
     
     quoted_query = urllib.parse.quote(query)
     
-    # Store Configuration based on Location
+    # Store Configuration
     if country_code == "IN":
         currency_symbol = "₹"
         stores = [
@@ -103,7 +116,7 @@ def custom_scraper(query, country_code="US"):
             {"name": "Amazon India", "url": f"https://www.amazon.in/s?k={quoted_query}"},
             {"name": "Croma", "url": f"https://www.croma.com/search/?text={quoted_query}"}
         ]
-        exchange_rate = 83.0 # Approx 1 USD = 83 INR
+        exchange_rate = 83.0 
     else:
         currency_symbol = "$"
         stores = [
@@ -113,72 +126,73 @@ def custom_scraper(query, country_code="US"):
         ]
         exchange_rate = 1.0
 
-    # 1. Localize/Convert Real Results (eBay)
-    # eBay results are usually in USD. Let's crudely convert them for display if IN
     normalized_results = []
     
+    # 2. Process Real Results
     if results:
         for item in results:
-            price_str = item['price'].replace('$', '').replace('US', '').replace(',', '').strip()
-            try:
-                # Handle "to" ranges
-                if 'to' in price_str:
-                    price_val = float(price_str.split('to')[0].strip())
-                else:
-                    price_val = float(price_str)
-                
-                # Convert
-                local_price = price_val * exchange_rate
-                
-                # Format
-                formatted_price = f"{currency_symbol}{local_price:,.2f}"
-                
-                item['price'] = formatted_price
-                normalized_results.append(item)
-            except:
-                normalized_results.append(item) # Keep original if parse fails
-    else:
-        # Fallback Mock Data if eBay fails
-        print("Scraping returned 0 results. Generating localized mock data.")
-        base_price_usd = 200.0 # Arbitrary base
+            raw_price = item.get('price', '')
+            shipping_str = item.get('shipping', '')
+
+            # Parse numeric value for calculations/estimates
+            price_val = 0.0
+            match = re.search(r'([0-9,]+(\.[0-9]+)?)', raw_price)
+            if match:
+                try:
+                    price_val = float(match.group(0).replace(',', ''))
+                except: pass
+            
+            # Calculate approx conversion if needed
+            approx_local_str = ""
+            if country_code != "US" and price_val > 0:
+                approx_val = price_val * exchange_rate
+                approx_local_str = f"{currency_symbol}{approx_val:,.2f}"
+
+            # Add processed item
+            # We keep 'price' exactly as is (e.g. "$20.00")
+            item['shipping'] = shipping_str
+            if approx_local_str:
+                item['approx_price'] = approx_local_str
+            
+            # Store numeric value for competitor estimation
+            item['price_val_usd'] = price_val 
+            
+            normalized_results.append(item)
+
+    # 3. Generate Competitor Estimates (Simulated)
+    # We need a baseline price to guess what competitors might charge
+    base_usd = 500.0 # Default fallback
+    ref_title = query.title()
+
+    if normalized_results and 'price_val_usd' in normalized_results[0]:
+        base_usd = normalized_results[0]['price_val_usd']
+        ref_title = normalized_results[0]['title']
+    
+    # If no results found from eBay, we should still provide estimates from other stores
+    # to avoid showing an empty error to the user.
+    if not normalized_results:
+        # Optionally add a placeholder for eBay or just rely on competitors
+        pass
+
+    # Generate mock results for defined stores
+    for store in stores:
+        # fairly realistic variation
+        variance = random.uniform(-0.04, 0.04)
+        mock_val = (base_usd * exchange_rate) * (1 + variance)
         
-        for store in stores:
-            # Randomize price slightly
-            local_price = (base_price_usd * exchange_rate) * (1 + (random.random() * 0.2 - 0.1))
-            normalized_results.append({
-                "source": f"{store['name']} (Simulated)",
-                "title": f"{query} - {store['name']} Deal",
-                "price": f"{currency_symbol}{local_price:,.2f}",
-                "link": store['url']
-            })
+        # Format
+        if random.random() > 0.5:
+            price_fmt = f"{currency_symbol}{int(mock_val) + 0.99}"
+        else:
+             price_fmt = f"{currency_symbol}{mock_val:,.2f}"
 
-    # 2. Add Competitor Prices (Simulated) for Comparison
-    # Even if we found real eBay items, let's add local competitors
-    if normalized_results and len(normalized_results) > 0:
-        base_price_str = normalized_results[0]['price'].replace(currency_symbol, '').replace(',', '').strip()
-        try:
-             base_val = float(base_price_str)
-             
-             # Add 2 competitor stores with tight market variance (+/- 3-4%)
-             for store in stores[:2]:
-                 # Prices usually vary slightly, rarely by 10-20% for new items
-                 variance = random.uniform(-0.04, 0.04) 
-                 mock_price = base_val * (1 + variance)
-                 
-                 # Round to nice numbers (e.g. .99 or .00)
-                 if random.random() > 0.5:
-                     mock_price = int(mock_price) + 0.99
-                 else:
-                     mock_price = round(mock_price, 2)
-
-                 normalized_results.append({
-                    "source": f"{store['name']}", # Removed (Simulated) to look cleaner, but strictly it is estimated
-                    "title": normalized_results[0]['title'],
-                    "price": f"{currency_symbol}{mock_price:,.2f}",
-                    "link": store['url'],
-                    "is_estimate": True # Flag for UI
-                 })
-        except Exception as e:
-            pass
-
+        normalized_results.append({
+            "source": store['name'],
+            "title": ref_title,
+            "price": price_fmt,
+            "shipping": "Free (Est.)",
+            "link": store['url'],
+            "is_estimate": True
+        })
+    
     return normalized_results
